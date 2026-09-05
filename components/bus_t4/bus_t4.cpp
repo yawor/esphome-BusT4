@@ -20,6 +20,15 @@ void BusT4Device::send_info_request(T4Target target, T4InfoCommand command) {
   write(&packet, 0);
 }
 
+  void BusT4Device::send_info_request(T4Target target, T4InfoCommand command, const uint8_t* args, size_t args_size) {
+  // DMP GET packet structure: [target] [command] [request_type] [offset] [length]
+  uint8_t message[5 + args_size] = { target, command, REQ_GET, 0x00, args_size };
+  if (args_size > 0)
+    std::copy(args, args + args_size, message + 5);
+  T4Packet packet(target_address_, parent_->get_address(), DMP, message, sizeof(message));
+  write(&packet, 0);
+}
+
 void BusT4Device::send_config_set(uint8_t param, uint8_t value) {
   // DMP SET packet structure: [target] [param] [request_type] [offset] [length] [value]
   uint8_t message[6] = { FOR_CU, param, REQ_SET, 0x00, 0x01, value };
