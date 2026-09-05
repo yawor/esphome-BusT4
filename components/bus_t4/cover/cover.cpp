@@ -853,11 +853,13 @@ void BusT4Cover::init_device() {
     case 5:
       // Step 5: Request open/close positions
       ESP_LOGD(TAG, "Init step 5: requesting position limits");
-      send_info_request(FOR_CU, INF_POS_MAX);
       if (is_mc824h_) {
+        const uint8_t args[1] = {1};
+        send_info_request(FOR_CU, INF_POS_MAX, args, 1);
         // MC824H doesn't support INF_POS_MIN param, instead uses INF_MIN_CLS param for fully closed gate
-        send_info_request(FOR_CU, INF_MIN_CLS);
+        send_info_request(FOR_CU, INF_MIN_CLS, args, 1);
       } else {
+        send_info_request(FOR_CU, INF_POS_MAX);
         send_info_request(FOR_CU, INF_POS_MIN);
       }
       init_step_ = 6;
@@ -866,7 +868,12 @@ void BusT4Cover::init_device() {
     case 6:
       // Step 6: Request max encoder position
       ESP_LOGD(TAG, "Init step 6: requesting max encoder position");
-      send_info_request(FOR_CU, INF_MAX_OPN);
+      if (is_mc824h_) {
+        const uint8_t args[1] = {1};
+        send_info_request(FOR_CU, INF_MAX_OPN, args, 1);
+      } else {
+        send_info_request(FOR_CU, INF_MAX_OPN);
+      }
       init_step_ = 7;
       break;
 
@@ -914,7 +921,12 @@ void BusT4Cover::init_oxi_device() {
 
 void BusT4Cover::request_position() {
   if (parent_ == nullptr) return;
-  send_info_request(FOR_CU, INF_CUR_POS);
+  if (is_mc824h_) {
+    const uint8_t args[1] = {1};
+    send_info_request(FOR_CU, INF_CUR_POS, args, 1);
+  } else {
+    send_info_request(FOR_CU, INF_CUR_POS);
+  }
 }
 
 void BusT4Cover::request_status() {
